@@ -16,7 +16,7 @@ on:
       kustomize_version:
         required: true
         type: string
-        default: "5.0.3"
+        default: "3.8.5"
         description: "Kustomize version."
       kustomize_overlay_paths:
         required: true
@@ -52,7 +52,7 @@ jobs:
         run: |
           echo "::add-mask::${{ inputs.core_repo_private_ssh_key }}"
 
-      - uses: webfactory/ssh-agent@v0.5.4
+      - uses: webfactory/ssh-agent@v0.8.0
         if: ${{ inputs.core_repo_private_ssh_key != '' }}
         with:
           ssh-private-key: ${{ inputs.core_repo_private_ssh_key }}
@@ -99,13 +99,14 @@ jobs:
       #     GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Send PR comment"
-        if: ${{ inputs.act_test == false }} && ${{ steps.kustomize-diff.outputs.kustomize_diff }} && ${{ steps.pr-id.outputs.exit_code != 0 }}
+        if: ${{ inputs.act_test == false }} && ${{ steps.kustomize-diff.outputs.kustomize_diff != '' }} && ${{ steps.pr-id.outputs.exit_code != 0 }}
         uses: mshick/add-pr-comment@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           issue: ${{ steps.pr-id.outputs.issue }}
           message: |
+            :rocket:These are the Kustomize changes to be applied to the cluster(**diffed against ${{ env.DEFAULT_REF }}**):
             ${{ steps.kustomize-diff.outputs.kustomize_diff }}
 
       - uses: stefanzweifel/git-auto-commit-action@v4

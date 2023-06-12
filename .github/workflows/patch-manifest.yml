@@ -15,7 +15,7 @@ on:
       kustomize_version:
         required: true
         type: string
-        default: "5.0.3"
+        default: "3.8.5"
         description: "Kustomize version."
       patch_manifest:
         required: true
@@ -54,14 +54,14 @@ jobs:
           echo "::add-mask::${{ inputs.core_repo_private_ssh_key }}"
 
       - name: Update existing manifest
-        uses: mikefarah/yq@v4.30.5
+        uses: mikefarah/yq@v4.34.1
         with:
           cmd: echo $JSON_PATCH | yq -P > ${{ inputs.manifest_file_path }}
 
       - name: Create Pull Request
         id: create-pr
         if: ${{ inputs.act_test == false }}
-        uses: peter-evans/create-pull-request@v3.8.2
+        uses: peter-evans/create-pull-request@v5.0.1
         with:
           commit-message: "chore(cd): Updating ${{ inputs.manifest_file_path }} from cd-managed-stack event"
           title: "chore(cd): Updating armory-stack from cd-managed-stack event"

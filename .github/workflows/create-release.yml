@@ -42,7 +42,7 @@ jobs:
             echo "type=patch" >>$GITHUB_OUTPUT
           fi
 
-      - uses: craig-day/compute-tag@v10
+      - uses: craig-day/compute-tag@v16
         id: compute_tag
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -62,11 +62,11 @@ jobs:
         run: |
           set mode -x
           export CHANGELOG=`git log $NEW_TAG...$PREVIOUS_TAG --oneline`
-          echo "CHANGELOG=$CHANGELOG"
-          CHANGELOG="${CHANGELOG//$'%'/%25}"
-          CHANGELOG="${CHANGELOG//$'\n'/%0A}"
-          CHANGELOG="${CHANGELOG//$'\r'/%0D}"
-          echo ::set-output name=CHANGELOG::$(echo -e "${CHANGELOG}")
+
+          EOF=$(openssl rand -hex 8)
+          echo "changelog<<$EOF" >>$GITHUB_OUTPUT
+          echo "$OUTPUT" >>$GITHUB_OUTPUT
+          echo "$EOF" >>$GITHUB_OUTPUT
         shell: bash
 
       - name: Create Release
@@ -80,4 +80,4 @@ jobs:
           draft: ${{ inputs.is_draft }}
           prerelease: ${{ inputs.is_prerelease }}
           body: |
-            ${{ steps.changelog.outputs.CHANGELOG }}
+            ${{ steps.changelog.outputs.changelog }}
