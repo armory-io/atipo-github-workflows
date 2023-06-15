@@ -11,8 +11,6 @@ This repository serves as a centralized location for storing [reusable workflows
     - [Calling a reusable workflow](#calling-a-reusable-workflow)
   - [List of available Workflows](#list-of-available-workflows)
     - [create-release](#create-release)
-      - [Inputs \& Outputs](#inputs--outputs)
-      - [Example Usage](#example-usage)
     - [generate-manifests](#generate-manifests)
     - [patch-manifest](#patch-manifest)
     - [pre-commit](#pre-commit)
@@ -78,11 +76,11 @@ Please note that this workflow will increase the patch version after each run. F
 
 As for prerelease versions, v1.0.0-beta0 will become v1.0.0-beta1.
 
-#### Inputs & Outputs
+**Inputs & Outputs**:
 
 See [create-release.yml](.github/workflows/create-release.yml) for more details.
 
-#### Example Usage
+**Example Usage**:
 
 ```yaml
 name: Create Release

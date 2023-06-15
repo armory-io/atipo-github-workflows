@@ -81,7 +81,7 @@ jobs:
     secrets: inherit
     with:
       kustomize_version: "5.0.3"
-      kustomize_overlay_paths: "${{ inputs.kustomize_overlay_path }}"
+      kustomize_overlay_paths: "${{ inputs.kustomize_overlay_paths }}"
       default_ref: ${{ inputs.default_ref }}
       pr_ref: cd-managed-stack-${{ github.run_id }}
       core_repo_private_ssh_key: ${{ inputs.core_repo_private_ssh_key }}

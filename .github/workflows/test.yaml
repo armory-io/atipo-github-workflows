@@ -6,6 +6,9 @@ on:
       - main
 
 jobs:
+  precommit-check:
+    uses: ./.github/workflows/pre-commit.yml
+
   generate-manifests:
     uses: ./.github/workflows/generate-manifests.yml
     secrets: inherit
