@@ -18,7 +18,7 @@ jobs:
     secrets: inherit
     with:
       kustomize_version: "5.0.3"
-      kustomize_overlay_path: "tests/generate-manifests/kustomize/dev"
+      kustomize_overlay_paths: "tests/generate-manifests/kustomize/dev"
       manifest_file_path: "tests/generate-manifests/kustomize/dev/deploy.yaml"
       default_ref: "main"
       patch_manifest: |

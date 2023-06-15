@@ -21,7 +21,7 @@ on:
         required: true
         type: string
         description: "Content of the Kubernetes manifests that need to be merged to the existing one in json string format."
-      kustomize_overlay_path:
+      kustomize_overlay_paths:
         required: true
         type: string
         description: "Path to the existing kustomize overlay that need to be updated. For example: deploy/dev."
