@@ -22,6 +22,11 @@ on:
         type: string
         default: "deploy/dev,deploy/prod"
         description: "List of kustomize overlay paths to build. Example: deploy/dev,deploy/prod."
+      rendered_filename:
+        required: false
+        default: rendered.yaml
+        type: string
+        description: "The name of the rendered file."
       default_ref:
         required: false
         type: string
@@ -54,13 +59,14 @@ jobs:
 
       - name: Kustomize build and diff
         id: kustomize-diff
-        uses: armory-io/atipo-github-actions/kustomize-build@f482b00341ac174df597726c5e8b82f528f12764
+        uses: armory-io/atipo-github-actions/kustomize-build@7d5099afac78a36a8c35dcfc206dce16b46d47b2
         env:
           SSH_AUTH_SOCK: ${{ env.SSH_AUTH_SOCK }}
         with:
           install_kustomize: true
           kustomize_version: ${{ inputs.kustomize_version }}
           kustomize_overlay_paths: ${{ inputs.kustomize_overlay_paths }}
+          rendered_filename: ${{ inputs.rendered_filename }}
           target_ref: ${{ env.DEFAULT_REF }}
           source_ref: ${{ env.PR_REF }}
 

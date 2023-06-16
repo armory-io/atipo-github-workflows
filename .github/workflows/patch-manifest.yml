@@ -25,6 +25,11 @@ on:
         required: true
         type: string
         description: "Path to the existing kustomize overlay that need to be updated. For example: deploy/dev."
+      rendered_filename:
+        required: false
+        default: rendered.yaml
+        type: string
+        description: "The name of the rendered file."
       manifest_file_path:
         required: false
         type: string
@@ -75,7 +80,8 @@ jobs:
       - update_versions
     secrets: inherit
     with:
-      kustomize_version: "5.0.3"
+      kustomize_version: ${{ inputs.kustomize_version }}
       kustomize_overlay_paths: "${{ inputs.kustomize_overlay_paths }}"
       default_ref: ${{ inputs.default_ref }}
       pr_ref: cd-managed-stack-${{ github.run_id }}
+      rendered_filename: ${{ inputs.rendered_filename }}
