@@ -2,17 +2,16 @@ name: Generate manifests from a kustomize project
 
 on:
   workflow_call:
+    secrets:
+      kustomize_repo_private_ssh_key:
+        required: false
+        description: "SSH private key if your kustomize project references to another git repo with SSH"
     inputs:
       act_test:
         required: false
         type: boolean
         default: false
         description: "Run tests in act. Set to false when running in GitHub Actions."
-      core_repo_private_ssh_key:
-        required: false
-        type: string
-        description: "SSH private key for core repo."
-        default: ""
       kustomize_version:
         required: true
         type: string
@@ -36,6 +35,7 @@ env:
   ACTIONS_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
   PR_REF: ${{ inputs.pr_ref || github.event.pull_request.head.ref }}
   DEFAULT_REF: ${{ inputs.default_ref || github.event.repository.default_branch }}
+  KUSTOMIZE_REPO_PRIVATE_SSH_KEY: ${{ secrets.kustomize_repo_private_ssh_key }}
 
 jobs:
   kustomize:
@@ -47,15 +47,10 @@ jobs:
           ref: ${{ env.PR_REF }}
           fetch-depth: 2 # otherwise, you will failed to push refs to dest repo
 
-      - name: Mask sensitive input
-        if: ${{ inputs.core_repo_private_ssh_key != '' }}
-        run: |
-          echo "::add-mask::${{ inputs.core_repo_private_ssh_key }}"
-
       - uses: webfactory/ssh-agent@v0.8.0
-        if: ${{ inputs.core_repo_private_ssh_key != '' }}
+        if: ${{ env.KUSTOMIZE_REPO_PRIVATE_SSH_KEY }}
         with:
-          ssh-private-key: ${{ inputs.core_repo_private_ssh_key }}
+          ssh-private-key: ${{ env.KUSTOMIZE_REPO_PRIVATE_SSH_KEY }}
 
       - name: Kustomize build and diff
         id: kustomize-diff

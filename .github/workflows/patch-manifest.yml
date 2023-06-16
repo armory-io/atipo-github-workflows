@@ -2,16 +2,16 @@ name: Patch manifests
 
 on:
   workflow_call:
+    secrets:
+      kustomize_repo_private_ssh_key:
+        required: false
+        description: "SSH private key if your kustomize project references to another git repo with SSH"
     inputs:
       act_test:
         required: false
         type: boolean
         default: false
         description: "Run tests in act. Set to false when running in GitHub Actions."
-      core_repo_private_ssh_key:
-        required: false
-        type: string
-        description: "SSH private key for core repo."
       kustomize_version:
         required: true
         type: string
@@ -48,11 +48,6 @@ jobs:
           ref: ${{ inputs.default_ref }}
           fetch-depth: 2 # otherwise, you will failed to push refs to dest repo
 
-      - name: Mask sensitive input
-        if: ${{ inputs.core_repo_private_ssh_key != '' }}
-        run: |
-          echo "::add-mask::${{ inputs.core_repo_private_ssh_key }}"
-
       - name: Update existing manifest
         uses: mikefarah/yq@v4.34.1
         with:
@@ -84,4 +79,3 @@ jobs:
       kustomize_overlay_paths: "${{ inputs.kustomize_overlay_paths }}"
       default_ref: ${{ inputs.default_ref }}
       pr_ref: cd-managed-stack-${{ github.run_id }}
-      core_repo_private_ssh_key: ${{ inputs.core_repo_private_ssh_key }}
