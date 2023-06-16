@@ -1,0 +1,87 @@
+name: Patch manifests
+
+on:
+  workflow_call:
+    secrets:
+      kustomize_repo_private_ssh_key:
+        required: false
+        description: "SSH private key if your kustomize project references to another git repo with SSH"
+    inputs:
+      act_test:
+        required: false
+        type: boolean
+        default: false
+        description: "Run tests in act. Set to false when running in GitHub Actions."
+      kustomize_version:
+        required: true
+        type: string
+        default: "3.8.5"
+        description: "Kustomize version."
+      patch_manifest:
+        required: true
+        type: string
+        description: "Content of the Kubernetes manifests that need to be merged to the existing one in json string format."
+      kustomize_overlay_paths:
+        required: true
+        type: string
+        description: "Path to the existing kustomize overlay that need to be updated. For example: deploy/dev."
+      rendered_filename:
+        required: false
+        default: rendered.yaml
+        type: string
+        description: "The name of the rendered file."
+      manifest_file_path:
+        required: false
+        type: string
+        default: "deploy/dev/deploy.yaml"
+        description: "Path of the existing manifest that need to be updated. For example: rendered.yaml."
+      default_ref:
+        required: true
+        type: string
+        description: "Default ref of the repository."
+
+env:
+  JSON_PATCH: ${{ inputs.patch_manifest }}
+
+jobs:
+  update_versions:
+    name: Update existing manifest
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.default_ref }}
+          fetch-depth: 2 # otherwise, you will failed to push refs to dest repo
+
+      - name: Update existing manifest
+        uses: mikefarah/yq@v4.34.1
+        with:
+          cmd: echo $JSON_PATCH | yq -P > ${{ inputs.manifest_file_path }}
+
+      - name: Create Pull Request
+        id: create-pr
+        if: ${{ inputs.act_test == false }}
+        uses: peter-evans/create-pull-request@v5.0.1
+        with:
+          commit-message: "chore(cd): Updating ${{ inputs.manifest_file_path }} from cd-managed-stack event"
+          title: "chore(cd): Updating armory-stack from cd-managed-stack event"
+          base: ${{ inputs.default_ref }}
+          branch: cd-managed-stack-${{ github.run_id }}
+          body: |
+            Event Payload from https://github.com/armory-io/cd-managed-stack.git
+            ```
+            ${{ env.JSON_PATCH }}
+            ```
+
+  generate-manifests:
+    uses: ./.github/workflows/generate-manifests.yml
+    if: ${{ inputs.act_test == false }}
+    needs:
+      - update_versions
+    secrets: inherit
+    with:
+      kustomize_version: ${{ inputs.kustomize_version }}
+      kustomize_overlay_paths: "${{ inputs.kustomize_overlay_paths }}"
+      default_ref: ${{ inputs.default_ref }}
+      pr_ref: cd-managed-stack-${{ github.run_id }}
+      rendered_filename: ${{ inputs.rendered_filename }}

@@ -1,0 +1,100 @@
+name: Run tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  precommit-check:
+    uses: ./.github/workflows/pre-commit.yml
+
+  generate-manifests:
+    uses: ./.github/workflows/generate-manifests.yml
+    secrets: inherit
+    with:
+      kustomize_version: "5.0.3"
+      kustomize_overlay_paths: "tests/generate-manifests/kustomize/dev,tests/generate-manifests/kustomize/prod"
+
+  patch-manifest:
+    uses: ./.github/workflows/patch-manifest.yml
+    secrets: inherit
+    with:
+      kustomize_version: "5.0.3"
+      kustomize_overlay_paths: "tests/generate-manifests/kustomize/dev"
+      manifest_file_path: "tests/generate-manifests/kustomize/dev/deploy.yaml"
+      default_ref: "main"
+      patch_manifest: |
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "name": "nginx-deployment"
+          },
+          "spec": {
+            "selector": {
+              "matchLabels": {
+                "app": "nginx"
+              }
+            },
+            "replicas": 1,
+            "template": {
+              "metadata": {
+                "labels": {
+                  "app": "nginx"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "name": "nginx",
+                    "image": "1.25.0-alpine3.17-slim",
+                    "ports": [
+                      {
+                        "containerPort": 80
+                      }
+                    ],
+                    "resources": {
+                      "limits": {
+                        "cpu": "500m",
+                        "memory": "512Mi"
+                      },
+                      "requests": {
+                        "cpu": "250m",
+                        "memory": "256Mi"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+
+  create-prerelease:
+    uses: ./.github/workflows/create-release.yml
+    secrets: inherit
+    with:
+      is_draft: false
+      is_prerelease: true
+
+  rollback-prerelease:
+    uses: ./.github/workflows/rollback-release.yml
+    needs: create-prerelease
+    secrets: inherit
+    with:
+      version: ${{ needs.create-prerelease.outputs.version }}
+
+  create-release:
+    uses: ./.github/workflows/create-release.yml
+    secrets: inherit
+    with:
+      is_draft: false
+      is_prerelease: false
+
+  rollback-release:
+    uses: ./.github/workflows/rollback-release.yml
+    needs: create-release
+    secrets: inherit
+    with:
+      version: ${{ needs.create-release.outputs.version }}

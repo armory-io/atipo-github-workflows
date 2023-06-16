@@ -1,0 +1,24 @@
+name: Rollback Github (Pre)Release
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "(Pre)Release to revert; This will cause a deploy to the previous stable version"
+        type: string
+        required: true
+
+jobs:
+  rollback:
+    name: Rollback specific version
+    runs-on: ubuntu-22.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Rollback Release
+        uses: author/action-rollback@stable
+        with:
+          # Using a tag name
+          tag: ${{ inputs.version }}

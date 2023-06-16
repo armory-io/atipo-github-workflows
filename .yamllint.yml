@@ -1,0 +1,11 @@
+ignore: |
+  rendered/
+extends: default
+rules:
+  document-start: disable
+  line-length: disable
+  braces:
+    max-spaces-inside: 1
+  indentation:
+    spaces: consistent
+    indent-sequences: whatever

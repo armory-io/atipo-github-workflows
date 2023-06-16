@@ -1,0 +1,6 @@
+act_test="true"
+core_repo_private_ssh_key=""
+kustomize_version="5.0.3"
+kustomize_overlay_paths="tests/generate-manifests/kustomize/dev,tests/generate-manifests/kustomize/prod"
+default_ref="main"
+pr_ref="your-PR-branch-name"

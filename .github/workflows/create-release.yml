@@ -1,0 +1,83 @@
+name: Create github release
+
+on:
+  workflow_call:
+    inputs:
+      is_draft:
+        required: true
+        type: boolean
+        default: false
+        description: "Is this a draft release?"
+      is_prerelease:
+        required: true
+        type: boolean
+        default: false
+        description: "Is this a prerelease?"
+    outputs:
+      version:
+        description: "The version of the release"
+        value: ${{ jobs.release.outputs.version }}
+
+jobs:
+  release:
+    name: Create release
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.compute_tag.outputs.next_tag }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Fetch full history
+        run: |
+          git fetch --prune --tags --unshallow
+        shell: bash
+
+      - name: Determine version type
+        id: version_type
+        run: |
+          # If prerelease is true, then we are creating a prerelease
+          if [[ "${{ inputs.is_prerelease }}" == "true" ]]; then
+            echo "type=prerelease" >>$GITHUB_OUTPUT
+          else
+            echo "type=patch" >>$GITHUB_OUTPUT
+          fi
+
+      - uses: craig-day/compute-tag@v16
+        id: compute_tag
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          version_scheme: semantic
+          version_type: ${{ steps.version_type.outputs.type }}
+
+      - name: Fetch Refresh
+        run: |
+          git fetch --prune --tags
+        shell: bash
+
+      - name: Generate Changelog
+        id: changelog
+        env:
+          NEW_TAG: ${{ steps.compute_tag.outputs.next_tag }}
+          PREVIOUS_TAG: ${{ steps.compute_tag.outputs.previous_tag }}
+        run: |
+          set mode -x
+          export CHANGELOG=`git log $NEW_TAG...$PREVIOUS_TAG --oneline`
+
+          EOF=$(openssl rand -hex 8)
+          echo "changelog<<$EOF" >>$GITHUB_OUTPUT
+          echo "$OUTPUT" >>$GITHUB_OUTPUT
+          echo "$EOF" >>$GITHUB_OUTPUT
+        shell: bash
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.compute_tag.outputs.next_tag }}
+          name: ${{ github.event.repository.name }} ${{ steps.compute_tag.outputs.next_tag }}
+          draft: ${{ inputs.is_draft }}
+          prerelease: ${{ inputs.is_prerelease }}
+          body: |
+            ${{ steps.changelog.outputs.changelog }}

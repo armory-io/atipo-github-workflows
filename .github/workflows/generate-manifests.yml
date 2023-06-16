@@ -1,0 +1,117 @@
+name: Generate manifests from a kustomize project
+
+on:
+  workflow_call:
+    secrets:
+      kustomize_repo_private_ssh_key:
+        required: false
+        description: "SSH private key if your kustomize project references to another git repo with SSH"
+    inputs:
+      act_test:
+        required: false
+        type: boolean
+        default: false
+        description: "Run tests in act. Set to false when running in GitHub Actions."
+      kustomize_version:
+        required: true
+        type: string
+        default: "3.8.5"
+        description: "Kustomize version."
+      kustomize_overlay_paths:
+        required: true
+        type: string
+        default: "deploy/dev,deploy/prod"
+        description: "List of kustomize overlay paths to build. Example: deploy/dev,deploy/prod."
+      rendered_filename:
+        required: false
+        default: rendered.yaml
+        type: string
+        description: "The name of the rendered file."
+      default_ref:
+        required: false
+        type: string
+        description: "Default ref of the repository."
+      pr_ref:
+        required: false
+        type: string
+        description: "Target ref of the core repo. Usually branch name of the pull request."
+
+env:
+  ACTIONS_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+  PR_REF: ${{ inputs.pr_ref || github.event.pull_request.head.ref }}
+  DEFAULT_REF: ${{ inputs.default_ref || github.event.repository.default_branch }}
+  KUSTOMIZE_REPO_PRIVATE_SSH_KEY: ${{ secrets.kustomize_repo_private_ssh_key }}
+
+jobs:
+  kustomize:
+    name: "Diff kustomize manifests against default branch"
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ env.PR_REF }}
+          fetch-depth: 2 # otherwise, you will failed to push refs to dest repo
+
+      - uses: webfactory/ssh-agent@v0.8.0
+        if: ${{ env.KUSTOMIZE_REPO_PRIVATE_SSH_KEY }}
+        with:
+          ssh-private-key: ${{ env.KUSTOMIZE_REPO_PRIVATE_SSH_KEY }}
+
+      - name: Kustomize build and diff
+        id: kustomize-diff
+        uses: armory-io/atipo-github-actions/kustomize-build@7d5099afac78a36a8c35dcfc206dce16b46d47b2
+        env:
+          SSH_AUTH_SOCK: ${{ env.SSH_AUTH_SOCK }}
+        with:
+          install_kustomize: true
+          kustomize_version: ${{ inputs.kustomize_version }}
+          kustomize_overlay_paths: ${{ inputs.kustomize_overlay_paths }}
+          rendered_filename: ${{ inputs.rendered_filename }}
+          target_ref: ${{ env.DEFAULT_REF }}
+          source_ref: ${{ env.PR_REF }}
+
+      - name: Find pull request id
+        if: ${{ inputs.act_test == false }} && ${{ always() }}
+        id: pr-id
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          issue=$(gh pr list --head "${{ env.PR_REF }}" --state open --json number --jq ".[0].number")
+          echo "issue=$issue" >>$GITHUB_OUTPUT
+
+      - name: "Send PR failure message"
+        if: ${{ inputs.act_test == false }} && ${{ failure() }} && ${{ steps.pr-id.outputs.exit_code != 0 }}
+        uses: mshick/add-pr-comment@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          issue: ${{ steps.pr-id.outputs.issue }}
+          message: |
+            :rotating_light: Kustomize build for PR failed. Please check the diff and this [workflow run](${{ env.ACTIONS_URL }}) before merging/deploying.
+
+      # - name: "Yaml-lint"
+      #   uses: karancode/yamllint-github-action@v2.0.0
+      #   with:
+      #     yamllint_file_or_dir: "spinnaker/_base"
+      #     yamllint_config_filepath: "spinnaker/_base/.yamllint"
+      #     yamllint_strict: false
+      #     yamllint_comment: true
+      #   env:
+      #     GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Send PR comment"
+        if: ${{ inputs.act_test == false }} && ${{ steps.kustomize-diff.outputs.kustomize_diff != '' }} && ${{ steps.pr-id.outputs.exit_code != 0 }}
+        uses: mshick/add-pr-comment@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          issue: ${{ steps.pr-id.outputs.issue }}
+          message: |
+            :rocket:These are the Kustomize changes to be applied to the cluster(**diffed against ${{ env.DEFAULT_REF }}**):
+            ${{ steps.kustomize-diff.outputs.kustomize_diff }}
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        if: ${{ inputs.act_test == false }}
+        with:
+          branch: ${{ env.PR_REF }}
+          commit_message: Apply rendered kustomize build
