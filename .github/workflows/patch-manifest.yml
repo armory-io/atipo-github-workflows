@@ -74,7 +74,7 @@ jobs:
             ```
 
   generate-manifests:
-    uses: ./.github/workflows/generate-manifests.yml
+    uses: armory-io/atipo-github-workflows/.github/workflows/generate-manifests.yml@v1
     if: ${{ inputs.act_test == false }}
     needs:
       - update_versions
