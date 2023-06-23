@@ -107,7 +107,6 @@ jobs:
         with:
           issue: ${{ steps.pr-id.outputs.issue }}
           message: |
-            :rocket:These are the Kustomize changes to be applied to the cluster(**diffed against ${{ env.DEFAULT_REF }}**):
             ${{ steps.kustomize-diff.outputs.kustomize_diff }}
 
       - uses: stefanzweifel/git-auto-commit-action@v4
