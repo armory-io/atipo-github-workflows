@@ -59,7 +59,7 @@ jobs:
 
       - name: Kustomize build and diff
         id: kustomize-diff
-        uses: armory-io/atipo-github-actions/kustomize-build@7d5099afac78a36a8c35dcfc206dce16b46d47b2
+        uses: armory-io/atipo-github-actions/kustomize-build@c475a5181d092e2cf6d15ee906edf9df1950259b
         env:
           SSH_AUTH_SOCK: ${{ env.SSH_AUTH_SOCK }}
         with:
@@ -71,7 +71,7 @@ jobs:
           source_ref: ${{ env.PR_REF }}
 
       - name: Find pull request id
-        if: ${{ inputs.act_test == false }} && ${{ always() }}
+        if: ${{ inputs.act_test == false && always() }}
         id: pr-id
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,7 +80,7 @@ jobs:
           echo "issue=$issue" >>$GITHUB_OUTPUT
 
       - name: "Send PR failure message"
-        if: ${{ inputs.act_test == false }} && ${{ failure() }} && ${{ steps.pr-id.outputs.exit_code != 0 }}
+        if: ${{ inputs.act_test == false && failure() && steps.pr-id.outputs.exit_code != 0 }}
         uses: mshick/add-pr-comment@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -89,18 +89,8 @@ jobs:
           message: |
             :rotating_light: Kustomize build for PR failed. Please check the diff and this [workflow run](${{ env.ACTIONS_URL }}) before merging/deploying.
 
-      # - name: "Yaml-lint"
-      #   uses: karancode/yamllint-github-action@v2.0.0
-      #   with:
-      #     yamllint_file_or_dir: "spinnaker/_base"
-      #     yamllint_config_filepath: "spinnaker/_base/.yamllint"
-      #     yamllint_strict: false
-      #     yamllint_comment: true
-      #   env:
-      #     GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: "Send PR comment"
-        if: ${{ inputs.act_test == false }} && ${{ steps.kustomize-diff.outputs.kustomize_diff != '' }} && ${{ steps.pr-id.outputs.exit_code != 0 }}
+        if: ${{ inputs.act_test == false && steps.kustomize-diff.outputs.kustomize_diff != '' && steps.pr-id.outputs.exit_code != 0 }}
         uses: mshick/add-pr-comment@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
