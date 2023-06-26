@@ -59,7 +59,7 @@ jobs:
 
       - name: Kustomize build and diff
         id: kustomize-diff
-        uses: armory-io/atipo-github-actions/kustomize-build@7d5099afac78a36a8c35dcfc206dce16b46d47b2
+        uses: armory-io/atipo-github-actions/kustomize-build@70702ac845cee3e7a1bf98258264e7c7ddc3b547
         env:
           SSH_AUTH_SOCK: ${{ env.SSH_AUTH_SOCK }}
         with:
@@ -88,16 +88,6 @@ jobs:
           issue: ${{ steps.pr-id.outputs.issue }}
           message: |
             :rotating_light: Kustomize build for PR failed. Please check the diff and this [workflow run](${{ env.ACTIONS_URL }}) before merging/deploying.
-
-      # - name: "Yaml-lint"
-      #   uses: karancode/yamllint-github-action@v2.0.0
-      #   with:
-      #     yamllint_file_or_dir: "spinnaker/_base"
-      #     yamllint_config_filepath: "spinnaker/_base/.yamllint"
-      #     yamllint_strict: false
-      #     yamllint_comment: true
-      #   env:
-      #     GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Send PR comment"
         if: ${{ inputs.act_test == false }} && ${{ steps.kustomize-diff.outputs.kustomize_diff != '' }} && ${{ steps.pr-id.outputs.exit_code != 0 }}
