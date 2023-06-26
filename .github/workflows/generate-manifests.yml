@@ -59,7 +59,7 @@ jobs:
 
       - name: Kustomize build and diff
         id: kustomize-diff
-        uses: armory-io/atipo-github-actions/kustomize-build@7d5099afac78a36a8c35dcfc206dce16b46d47b2
+        uses: armory-io/atipo-github-actions/kustomize-build@70702ac845cee3e7a1bf98258264e7c7ddc3b547
         env:
           SSH_AUTH_SOCK: ${{ env.SSH_AUTH_SOCK }}
         with:
@@ -71,7 +71,7 @@ jobs:
           source_ref: ${{ env.PR_REF }}
 
       - name: Find pull request id
-        if: ${{ inputs.act_test == false }} && ${{ always() }}
+        if: ${{ inputs.act_test == false && always() }}
         id: pr-id
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,7 +80,7 @@ jobs:
           echo "issue=$issue" >>$GITHUB_OUTPUT
 
       - name: "Send PR failure message"
-        if: ${{ inputs.act_test == false }} && ${{ failure() }} && ${{ steps.pr-id.outputs.exit_code != 0 }}
+        if: ${{ inputs.act_test == false && failure() && steps.pr-id.outputs.exit_code != 0 }}
         uses: mshick/add-pr-comment@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -100,7 +100,7 @@ jobs:
       #     GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Send PR comment"
-        if: ${{ inputs.act_test == false }} && ${{ steps.kustomize-diff.outputs.kustomize_diff != '' }} && ${{ steps.pr-id.outputs.exit_code != 0 }}
+        if: ${{ inputs.act_test == false && steps.kustomize-diff.outputs.kustomize_diff != '' && steps.pr-id.outputs.exit_code != 0 }}
         uses: mshick/add-pr-comment@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
