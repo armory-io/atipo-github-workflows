@@ -1,0 +1,10 @@
+name: Run pre-commit tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  precommit-check:
+    uses: ./.github/workflows/pre-commit.yml

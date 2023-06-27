@@ -1,0 +1,17 @@
+name: Run generate-manifests tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "tests/generate-manifests/**/*.ya?ml"
+      - ".github/workflows/generate-manifests.yml"
+
+jobs:
+  generate-manifests:
+    uses: ./.github/workflows/generate-manifests.yml
+    secrets: inherit
+    with:
+      kustomize_version: "5.0.3"
+      kustomize_overlay_paths: "tests/generate-manifests/kustomize/dev,tests/generate-manifests/kustomize/prod"

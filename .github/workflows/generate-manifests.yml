@@ -80,7 +80,7 @@ jobs:
           echo "issue=$issue" >>$GITHUB_OUTPUT
 
       - name: "Send PR failure message"
-        if: ${{ inputs.act_test == false && failure() && steps.pr-id.outputs.exit_code != 0 }}
+        if: ${{ inputs.act_test == false && failure() && steps.pr-id.outputs.exit_code == 0 }}
         uses: mshick/add-pr-comment@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -90,7 +90,7 @@ jobs:
             :rotating_light: Kustomize build for PR failed. Please check the diff and this [workflow run](${{ env.ACTIONS_URL }}) before merging/deploying.
 
       - name: "Send PR comment"
-        if: ${{ inputs.act_test == false && steps.kustomize-diff.outputs.kustomize_diff != '' && steps.pr-id.outputs.exit_code != 0 }}
+        if: ${{ inputs.act_test == false && steps.kustomize-diff.outputs.kustomize_diff != '' && steps.pr-id.outputs.exit_code == 0 }}
         uses: mshick/add-pr-comment@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
