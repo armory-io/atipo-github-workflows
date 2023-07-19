@@ -13,6 +13,11 @@ on:
         type: boolean
         default: false
         description: "Is this a prerelease?"
+      prerelease_suffix:
+        required: false
+        type: string
+        default: ""
+        description: "The suffix to append to the prerelease tag"
     outputs:
       version:
         description: "The version of the release"
@@ -48,6 +53,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           version_scheme: semantic
           version_type: ${{ steps.version_type.outputs.type }}
+          prerelease_suffix: ${{ inputs.prerelease_suffix }}
 
       - name: Fetch Refresh
         run: |
