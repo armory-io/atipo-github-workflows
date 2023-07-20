@@ -36,3 +36,18 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.create-release.outputs.version }}
+
+  create-prerelease-with-suffix:
+    uses: ./.github/workflows/create-release.yml
+    secrets: inherit
+    with:
+      is_draft: false
+      is_prerelease: true
+      prerelease_suffix: "-sandbox"
+
+  rollback-prerelease-with-suffix:
+    uses: ./.github/workflows/rollback-release.yml
+    needs: create-prerelease-with-suffix
+    secrets: inherit
+    with:
+      version: ${{ needs.create-prerelease-with-suffix.outputs.version }}
