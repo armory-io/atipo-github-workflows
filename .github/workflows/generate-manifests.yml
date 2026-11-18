@@ -52,7 +52,7 @@ jobs:
           ref: ${{ env.PR_REF }}
           fetch-depth: 2 # otherwise, you will failed to push refs to dest repo
 
-      - uses: webfactory/ssh-agent@d4b9b8ff72958532804b70bbe600ad43b36d5f2e # v0.8.0
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
         if: ${{ env.KUSTOMIZE_REPO_PRIVATE_SSH_KEY }}
         with:
           ssh-private-key: ${{ env.KUSTOMIZE_REPO_PRIVATE_SSH_KEY }}
