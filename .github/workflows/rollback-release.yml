@@ -15,10 +15,10 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
 
       - name: Rollback Release
-        uses: author/action-rollback@stable
+        uses: author/action-rollback@d3f0d502876dcfda4227f30b5c9a6999e40b9c81 # stable
         with:
           # Using a tag name
           tag: ${{ inputs.version }}
