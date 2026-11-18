@@ -47,7 +47,7 @@ jobs:
     name: "Diff kustomize manifests against default branch"
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.PR_REF }}
           fetch-depth: 2 # otherwise, you will failed to push refs to dest repo
@@ -81,7 +81,7 @@ jobs:
 
       - name: "Send PR failure message"
         if: ${{ inputs.act_test == false && failure() && steps.pr-id.outputs.exit_code == 0 }}
-        uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2
+        uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3.12.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -91,7 +91,7 @@ jobs:
 
       - name: "Send PR comment"
         if: ${{ inputs.act_test == false && steps.kustomize-diff.outputs.kustomize_diff != '' && steps.pr-id.outputs.exit_code == 0 }}
-        uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2
+        uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3.12.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -99,7 +99,7 @@ jobs:
           message: |
             ${{ steps.kustomize-diff.outputs.kustomize_diff }}
 
-      - uses: stefanzweifel/git-auto-commit-action@3ea6ae190baf489ba007f7c92608f33ce20ef04a # v4
+      - uses: stefanzweifel/git-auto-commit-action@d0b01107b5db882071f96de5dd4b54961ea93f4c # v7.2.1
         if: ${{ inputs.act_test == false }}
         with:
           branch: ${{ env.PR_REF }}
