@@ -30,7 +30,7 @@ jobs:
     outputs:
       version: ${{ steps.compute_tag.outputs.next_tag }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
 
       - name: Fetch full history
         run: |
@@ -47,7 +47,7 @@ jobs:
             echo "type=patch" >>$GITHUB_OUTPUT
           fi
 
-      - uses: craig-day/compute-tag@v16
+      - uses: craig-day/compute-tag@c34867ffd46c0bd0cf6ca00db99ad72331092080 # v16
         id: compute_tag
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -77,7 +77,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

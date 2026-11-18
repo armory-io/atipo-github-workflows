@@ -48,20 +48,20 @@ jobs:
     name: Update existing manifest
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
         with:
           ref: ${{ inputs.default_ref }}
           fetch-depth: 2 # otherwise, you will failed to push refs to dest repo
 
       - name: Update existing manifest
-        uses: mikefarah/yq@v4.34.1
+        uses: mikefarah/yq@5ef537f3fd1a9437aa3ee44c32c6459a126efdc4 # v4.34.1
         with:
           cmd: echo $JSON_PATCH | yq -P > ${{ inputs.manifest_file_path }}
 
       - name: Create Pull Request
         id: create-pr
         if: ${{ inputs.act_test == false }}
-        uses: peter-evans/create-pull-request@v5.0.1
+        uses: peter-evans/create-pull-request@284f54f989303d2699d373481a0cfa13ad5a6666 # v5.0.1
         with:
           commit-message: "chore(cd): Updating ${{ inputs.manifest_file_path }} from cd-managed-stack event"
           title: "chore(cd): Updating armory-stack from cd-managed-stack event"
